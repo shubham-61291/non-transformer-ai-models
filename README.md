@@ -1,5 +1,3 @@
-# non-transformer-ai-models
-A curated collection of diverse Machine Learning and AI models, algorithms, and implementations, excluding the Transformer architecture.
 # 🧠 Non-Transformer AI Models
 This repository showcases a collection of classic generative models implemented in PyTorch, applied to both image (MNIST) and text datasets. Each folder is a self-contained project with its own training script, requirements, results, and documentation. The goal is to demonstrate how Autoencoders, VAEs, GANs, DCGANs, and Diffusion models work without transformers, serving as an educational baseline for modern generative AI.
 
