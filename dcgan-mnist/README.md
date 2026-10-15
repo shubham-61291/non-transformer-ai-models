@@ -1,87 +1,113 @@
-# DCGAN (MNIST) 📖 Overview
+# Deep Convolutional GAN for MNIST
 
-The Deep Convolutional GAN (DCGAN) is implemented in PyTorch to generate handwritten digits from the MNIST dataset. Unlike the vanilla GAN, this model uses convolutional and transpose-convolutional layers for stable training and improved image quality.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
+A convolutional GAN reference implementation for generating MNIST digits using a transposed-convolution generator and convolutional discriminator.
+
+## What is implemented
+
+The generator projects a 100-dimensional latent vector to a 7 × 7 feature map and upsamples to 28 × 28. The discriminator downsamples images with convolutional layers and predicts a real/fake score.
+
+## Configuration and implementation details
+
+| Area | Implementation in the checked-in source |
+|---|---|
+| **Dataset** | MNIST via `torchvision`; pixels are normalized to `[-1, 1]`. |
+| **Latent input** | 100-dimensional Gaussian noise. |
+| **Architecture** | Convolutional discriminator and transposed-convolution generator, with batch normalization in the generator. |
+| **Objective** | Binary cross-entropy adversarial objective. |
+| **Optimizer** | Adam for generator and discriminator; betas `(0.5, 0.999)`; learning rate `2e-4`. |
+| **Training** | 20 epochs; batch size 128. |
+| **Monitoring** | Display fixed-noise samples every 5 epochs and generator/discriminator loss plots. |
+| **Device** | CUDA when available, otherwise CPU. |
+
+## Workflow
+
+1. Load MNIST images using the `[-1, 1]` scale expected by the generator’s `tanh` output.
+2. Initialize convolutional weights using the custom initialization routine.
+3. Alternate discriminator and generator updates each batch.
+4. Display a 16-image grid at epochs divisible by five.
+5. Plot adversarial losses at the end of training.
+
+## Run locally
+
+From the repository root:
+
+```bash
+cd "dcgan-mnist"
+python -m venv .venv
+# Activate .venv for your shell before continuing.
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python "DCGAN.py"
+```
+
+The source selects CUDA when available and otherwise runs on CPU. MNIST-based scripts download data through `torchvision` into `./data` if it is not already cached. Text scripts use the small corpus defined in the source. The file has notebook-export origins, so execution is performed as a top-to-bottom script rather than through a dedicated package API.
+
+## Outputs and included evidence
+
+The script displays figures with Matplotlib. Epoch snapshots and `training loss.png` are committed reference artifacts and are not written to those exact filenames by the current script.
+
+### Existing repository artifacts
+
+- [`after 5 epoch.png`](./after%205%20epoch.png) — Committed sample grid.
+- [`after 10 epoch.png`](./after%2010%20epoch.png) — Committed sample grid.
+- [`after 15 epoch.png`](./after%2015%20epoch.png) — Committed sample grid.
+- [`after 20 epoch.png`](./after%2020%20epoch.png) — Committed sample grid.
+- [`training loss.png`](./training%20loss.png) — Committed adversarial-loss plot.
+
+These are committed reference artifacts. Their presence does not mean that the current script reproduces them byte-for-byte on every environment.
+
+## Limitations and reproducibility
+
+- The project does not compute quantitative image-generation quality metrics.
+- Adversarial training is sensitive to random initialization and optimization settings.
+- No trained checkpoint is exported. GPU use is optional and availability depends on the local PyTorch installation.
+
+## Intended use
+
+Use this project to inspect a compact implementation of the method, reproduce an educational run, and compare the concept with the other models in the repository. It is not a production inference package or a benchmark claim.
+
+## Source and dependency files
+
+- Entry point: [`DCGAN.py`](./DCGAN.py)
+- Dependencies: [`requirements.txt`](./requirements.txt)
+- Repository index: [root README](../README.md)
+
+## Source-review note
+
+DCGAN uses spatial convolutional layers, unlike the fully connected GAN baseline in `../gan-mnist/README.md`.
+
+## Author
+
+**Shubham Kumar Singh**
 
 ---
 
-## 🚀 Key Features
-✅ Convolutional Generator & Discriminator  
-✅ Learns to generate realistic MNIST digits  
-✅ Progressive outputs across epochs (5 → 20)  
-✅ Training loss visualization  
-✅ Stable adversarial training  
+## License
 
----
+This project is licensed under the MIT License. See the complete [project-local license](./LICENSE).
 
-## 🛠 Tech Stack
-Framework: PyTorch  
-Dataset: MNIST (via torchvision)  
-Libraries: Torch, Torchvision, Matplotlib  
-Loss: Binary Cross Entropy (BCE)  
-Optimizer: Adam  
-
----
-
-## 📂 Project Structure
-dcgan-mnist/  
-│── DCGAN.py                 # DCGAN implementation and training script  
-│── after 5 epoch.png        # Generated samples after 5 epochs  
-│── after 10 epoch.png       # Generated samples after 10 epochs  
-│── after 15 epoch.png       # Generated samples after 15 epochs  
-│── after 20 epoch.png       # Generated samples after 20 epochs  
-│── training loss.png        # Training loss curves  
-│── requirements.txt         # Dependencies  
-│── README.md                # Documentation  
-│── .gitkeep                 # To track empty folder  
-
----
-
-## ⚡ Installation
-git clone https://github.com/shubham-61291/non-transformer-ai-models.git  
-cd "dcgan-mnist"  
-pip install -r requirements.txt  
-
----
-
-## ▶️ Usage
-python "DCGAN.py"  
-
-This will train the DCGAN on MNIST and save generated digit images after every 5 epochs.
-
----
-
-## 🖼 Demo
-
-🔹 **Training Loss Curve**  
-![Loss Curve](training%20loss.png)
-
-🔹 **Generated Samples (by Epochs)**  
-Epoch 5:  
-![Epoch 5](after%205%20epoch.png)  
-
-Epoch 10:  
-![Epoch 10](after%2010%20epoch.png)  
-
-Epoch 15:  
-![Epoch 15](after%2015%20epoch.png)  
-
-Epoch 20:  
-![Epoch 20](after%2020%20epoch.png)  
-
----
-
-## 🔮 Future Enhancements
-🔹 Add Conditional DCGAN for label-based control  
-🔹 Experiment with Wasserstein GAN (WGAN) for better stability  
-🔹 Scale up to higher resolution datasets like CIFAR-10 or CelebA  
-🔹 Integrate with Gradio for live digit generation  
-
----
-
-## 👨‍💻 Author
-Shubham Singh
-
----
-
-## 📜 License
+```text
 MIT License
+
+Copyright (c) 2026 Shubham Kumar Singh
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
