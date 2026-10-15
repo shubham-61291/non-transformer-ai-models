@@ -1,74 +1,104 @@
-Conditional Variational Autoencoder for Text (CVAE-Text) 📖 Overview
+# Conditional Variational Autoencoder for Toy Text
 
-The Conditional Variational Autoencoder for Text (CVAE-Text) is an extension of the Variational Autoencoder that conditions both the encoder and decoder on class labels. This allows the model to generate text conditioned on sentiment labels (e.g., positive, negative, neutral).
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-🚀 Key Features
+A small conditional text-generation experiment. An LSTM encoder/decoder VAE conditions its latent representation and decoder on a manually authored category label.
 
-✅ Conditional text generation based on sentiment labels (0 = neutral, 1 = positive, 2 = negative)
-✅ Sequence-to-sequence architecture with embeddings and LSTMs
-✅ β-VAE training schedule with KL annealing
-✅ Reconstruction of input sentences with labels
-✅ Random text generation conditioned on labels
+## What is implemented
 
-🛠 Tech Stack
+The script defines a tiny corpus in source code, builds a word-level vocabulary with PAD/BOS/EOS/UNK tokens, embeds tokens and labels, encodes sequences with an LSTM, samples a latent vector, then decodes using an LSTM. Labels are represented as neutral (0), positive (1), and negative (2) in the sample corpus.
 
-Framework: PyTorch
-Libraries: Torch
-Optimizer: Adam
-Loss: Cross-Entropy + KL Divergence
+## Configuration and implementation details
 
-📂 Project Structure
+| Area | Implementation in the checked-in source |
+|---|---|
+| **Data** | Small hand-authored toy sentence corpus embedded directly in the script; no download is required. |
+| **Tokenizer** | Whitespace/regular-expression word tokenization; vocabulary constructed from the toy corpus. |
+| **Architecture** | Embedding dimension 64, LSTM hidden size 128, latent size 16; label embeddings are concatenated with latent features. |
+| **Objective** | Token cross-entropy with padding ignored plus beta-weighted KL divergence. |
+| **KL schedule** | Beta warms from 0.1 toward 1 across the first 10 epochs. |
+| **Optimizer** | Adam; learning rate `1e-3`. |
+| **Training** | 50 epochs; batch size 2. |
+| **Device** | CUDA when available, otherwise CPU. |
 
-cvae-text/
-│── cvae text model.py # Core CVAE for text implementation and training
-│── requirements.txt # Dependencies
-│── README.md # Documentation
-│── .gitkeep # To track empty folder in git
+## Workflow
 
-⚡ Installation
+1. Build the toy corpus, vocabulary, special-token IDs, and label IDs.
+2. Pad/encode sentences into token sequences.
+3. Train the conditional VAE using teacher-forced next-token reconstruction and KL regularization.
+4. Print a batch of reconstructions with their labels.
+5. Sample a Gaussian latent vector for each of the three classes and greedily decode a short sequence.
 
-git clone https://github.com/shubham-61291/non-transformer-ai-models.git
+## Run locally
 
+From the repository root:
+
+```bash
 cd "cvae-text"
-pip install -r requirements.txt
-
-▶️ Usage
-
+python -m venv .venv
+# Activate .venv for your shell before continuing.
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 python "cvae text model.py"
+```
 
-This will train the CVAE on the toy corpus and print training logs, reconstructions, and random generations.
+The source selects CUDA when available and otherwise runs on CPU. MNIST-based scripts download data through `torchvision` into `./data` if it is not already cached. Text scripts use the small corpus defined in the source. The file has notebook-export origins, so execution is performed as a top-to-bottom script rather than through a dedicated package API.
 
-🖼 Demo (Text Output)
-🔹 Training Logs
+## Outputs and included evidence
 
-Epoch 01/50 | beta=0.10 | Loss 3.358 Rec 3.349 KL 0.086
-Epoch 10/50 | beta=1.00 | Loss 2.034 Rec 2.034 KL 0.001
-Epoch 20/50 | beta=1.00 | Loss 0.650 Rec 0.649 KL 0.000
-Epoch 50/50 | beta=1.00 | Loss 0.257 Rec 0.257 KL 0.000
+Training logs, example reconstructions, and label-conditioned generated strings are printed to the console. There are no committed image outputs in this folder.
 
-🔹 Reconstructions with Labels
-Label 0 | Input: i love deep learning
-Label 0 | Reconstruct:i love deep learning
+## Limitations and reproducibility
 
-Label 2 | Input: that film was terrible
-Label 2 | Reconstruct:a film was terrible
+- The corpus is tiny and hand-authored; the model is an architecture demonstration, not a sentiment classifier or a usable sentiment-conditioned generator.
+- The vocabulary is limited to words in the included corpus, so out-of-vocabulary generalization is not supported beyond the UNK token.
+- The README’s historical sample logs show KL values becoming close to zero; this can indicate posterior collapse. No held-out text-generation benchmark is run.
+- The script does not save a model or vocabulary artifact for independent inference.
 
-🔹 Random Generations (Conditioned on Label)
+## Intended use
 
-Label 0: i love deep learning
-Label 1: an excellent performance
-Label 2: a very bad script
+Use this project to inspect a compact implementation of the method, reproduce an educational run, and compare the concept with the other models in the repository. It is not a production inference package or a benchmark claim.
 
-🔮 Future Enhancements
+## Source and dependency files
 
-🔹 Extend dataset beyond toy corpus
-🔹 Add attention mechanism for better text generation
-🔹 Evaluate on larger benchmarks like IMDB reviews
+- Entry point: [`cvae text model.py`](./cvae%20text%20model.py)
+- Dependencies: [`requirements.txt`](./requirements.txt)
+- Repository index: [root README](../README.md)
 
-👨‍💻 Author
+## Source-review note
 
-Shubham Singh
+The label values are conditioning codes attached to the toy data, not labels learned or validated on a real sentiment dataset.
 
-📜 License
+## Author
 
+**Shubham Kumar Singh**
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the complete [project-local license](./LICENSE).
+
+```text
 MIT License
+
+Copyright (c) 2026 Shubham Kumar Singh
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
