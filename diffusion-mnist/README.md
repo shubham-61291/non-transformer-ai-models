@@ -1,91 +1,113 @@
-# Diffusion Model (MNIST) 📖 Overview
+# Diffusion-Style Image Generation Prototype for MNIST
 
-This project implements a simple diffusion model trained on the MNIST dataset. The model demonstrates the forward process of adding noise to images and the reverse denoising process to generate digits from pure noise.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
----
+An educational prototype of a Gaussian forward-noising process and a learned noise-prediction network for MNIST-sized grayscale images.
 
-## 🚀 Key Features
-✅ Forward diffusion with configurable timesteps  
-✅ Lightweight U-Net style denoising model  
-✅ Visualization of noisy and denoised outputs  
-✅ Intermediate sampling at timesteps (100, 150, 200)  
-✅ Final digit generation from random noise  
+## What is implemented
 
----
+A linear beta schedule creates 200 forward diffusion steps. A small stack of convolutional layers predicts noise and the script includes a reverse-update sampling loop initialized with random noise.
 
-## 🛠 Tech Stack
-Framework: PyTorch  
-Dataset: MNIST (via torchvision)  
-Libraries: Torch, Torchvision, Matplotlib  
-Optimizer: Adam  
-Loss: MSE (Mean Squared Error)  
+## Configuration and implementation details
 
----
+| Area | Implementation in the checked-in source |
+|---|---|
+| **Dataset** | MNIST via `torchvision`; image tensors are mapped to `[-1, 1]`. |
+| **Noise schedule** | 200 timesteps; beta values linearly increase from `1e-4` to `0.02`. |
+| **Denoiser** | Small convolutional stack; it accepts `t` in its method signature but does not use the timestep inside the network. |
+| **Objective** | Mean squared error between sampled noise and predicted noise. |
+| **Optimizer** | Adam; learning rate defined in script. |
+| **Training** | 10 epochs; batch size 128. |
+| **Device** | CUDA when available, otherwise CPU. |
 
-## 📂 Project Structure
-diffusion-mnist/  
-│── diffusion image model.py    # Diffusion implementation and training  
-│── output.png                  # Clean, noisy, denoised samples  
-│── sample at t = 100.png       # Generated digits at step 100  
-│── sample at t = 150.png       # Generated digits at step 150  
-│── sample at t = 200.png       # Generated digits at step 200  
-│── final sample.png            # Final generation from noise  
-│── training loss.png           # Training loss curve  
-│── requirements.txt            # Dependencies  
-│── README.md                   # Documentation  
-│── .gitkeep                    # Track folder in git  
+## Workflow
 
----
+1. Load MNIST images in the range used by the noise process.
+2. Sample a random timestep per training image and add noise according to the cumulative alpha schedule.
+3. Train the convolutional network to predict the injected noise.
+4. Display a clean/noisy/one-step-denoised comparison.
+5. Initialize a sample batch from Gaussian noise and run the script’s reverse-update loop, displaying intermediate and final grids.
 
-## ⚡ Installation
-git clone https://github.com/shubham-61291/non-transformer-ai-models.git  
-cd "diffusion-mnist"  
-pip install -r requirements.txt  
+## Run locally
 
----
+From the repository root:
 
-## ▶️ Usage
-python "diffusion image model.py"  
+```bash
+cd "diffusion-mnist"
+python -m venv .venv
+# Activate .venv for your shell before continuing.
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python "diffusion image model.py"
+```
 
-This will train the diffusion model, save intermediate results, and produce final generated samples.
+The source selects CUDA when available and otherwise runs on CPU. MNIST-based scripts download data through `torchvision` into `./data` if it is not already cached. Text scripts use the small corpus defined in the source. The file has notebook-export origins, so execution is performed as a top-to-bottom script rather than through a dedicated package API.
 
----
+## Outputs and included evidence
 
-## 🖼 Demo
+The script displays loss, noising/denoising, intermediate-sampling, and final-sample figures. The checked-in PNGs are reference artifacts; the current code displays figures rather than saving all of those specific filenames.
 
-🔹 **Training Loss Curve**  
-![Training Loss](training%20loss.png)
+### Existing repository artifacts
 
-🔹 **Output Visualization**  
-![Output](output.png)
+- [`output.png`](./output.png) — Committed noising/reconstruction visualization.
+- [`sample at t = 100.png`](./sample%20at%20t%20=%20100.png) — Committed intermediate-sample reference.
+- [`sample at t = 150.png`](./sample%20at%20t%20=%20150.png) — Committed intermediate-sample reference.
+- [`sample at t = 200.png`](./sample%20at%20t%20=%20200.png) — Committed intermediate-sample reference.
+- [`final sample.png`](./final%20sample.png) — Committed generated-sample reference.
+- [`training loss.png`](./training%20loss.png) — Committed training-loss reference.
 
-🔹 **Sampling Steps**  
-t=100:  
-![t100](sample%20at%20t%20%3D%20100.png)  
+These are committed reference artifacts. Their presence does not mean that the current script reproduces them byte-for-byte on every environment.
 
-t=150:  
-![t150](sample%20at%20t%20%3D%20150.png)  
+## Limitations and reproducibility
 
-t=200:  
-![t200](sample%20at%20t%20%3D%20200.png)  
+- This is a learning prototype, not a validated diffusion implementation. Although timestep `t` is passed to the denoiser, the model body returns `self.net(x)` and therefore ignores the timestep. This weakens the intended timestep-conditioned noise-prediction design.
+- The visualization labeled denoised is a direct subtraction of predicted noise, not a complete reverse trajectory. The sampler uses a simplified reverse update and its generated quality has not been quantitatively assessed.
+- No checkpoint, FID, or other image-generation benchmark is produced. Treat displayed samples as demonstrations, not evidence of production-grade generative quality.
 
-🔹 **Final Sample**  
-![Final](final%20sample.png)
+## Intended use
 
----
+Use this project to inspect a compact implementation of the method, reproduce an educational run, and compare the concept with the other models in the repository. It is not a production inference package or a benchmark claim.
 
-## 🔮 Future Enhancements
-🔹 Add proper U-Net with timestep embeddings  
-🔹 Train on complex datasets like CIFAR-10 or CelebA  
-🔹 Implement classifier-free guidance  
-🔹 Explore advanced noise schedules  
+## Source and dependency files
 
----
+- Entry point: [`diffusion image model.py`](./diffusion%20image%20model.py)
+- Dependencies: [`requirements.txt`](./requirements.txt)
+- Repository index: [root README](../README.md)
 
-## 👨‍💻 Author
-Shubham Singh
+## Source-review note
+
+The timestep-conditioning caveat is important: do not describe the current network as a fully timestep-conditioned U-Net or as a rigorously validated DDPM.
+
+## Author
+
+**Shubham Kumar Singh**
 
 ---
 
-## 📜 License
+## License
+
+This project is licensed under the MIT License. See the complete [project-local license](./LICENSE).
+
+```text
 MIT License
+
+Copyright (c) 2026 Shubham Kumar Singh
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
